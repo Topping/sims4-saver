@@ -42,6 +42,17 @@ class SimsSaverApp:
         self.root.title(self.loc.get("app_title"))
         self.root.geometry("500x800")
         self.root.resizable(False, False)
+        
+        # Set window icon
+        try:
+            base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+            icon_path = os.path.join(base_path, "icon.ico")
+            if os.path.exists(icon_path):
+                self.root.iconbitmap(icon_path)
+            else:
+                print(f"Warning: icon.ico not found at {icon_path}")
+        except Exception as e:
+            print(f"Error setting window icon: {e}")
 
         # Auto-save state
         self.is_running = False
@@ -272,15 +283,30 @@ class SimsSaverApp:
         lang_frame = tk.Frame(parent, bg=self.colors['background'])
         lang_frame.pack(side=tk.RIGHT)
 
-        self.lang_var = tk.StringVar(value=self.lang_code)
+        # Use plain text language names
+        self.language_options = {
+            "en": "English",
+            "da": "Danish"
+        }
+
+        # Initialize lang_var with the display name of the current language
+        self.lang_var = tk.StringVar(value=self.language_options.get(self.lang_code, "English"))
+        
         self.lang_picker = ttk.Combobox(lang_frame, textvariable=self.lang_var,
-                                        values=["en", "da"], state="readonly", width=5,
-                                        style='Modern.TCombobox')
+                                        values=list(self.language_options.values()), state="readonly", width=12,
+                                        style='Modern.TCombobox') 
         self.lang_picker.pack(side=tk.RIGHT)
         self.lang_picker.bind("<<ComboboxSelected>>", self.on_language_selected)
 
     def on_language_selected(self, event=None):
-        selected_lang = self.lang_var.get()
+        # Extract language code from the selected string (e.g., "English" -> "en")
+        selected_display_text = self.lang_var.get()
+        lang_code_map = {
+            "English": "en",
+            "Danish": "da"
+        }
+        selected_lang = lang_code_map.get(selected_display_text, "en") # Default to English if not found
+
         self.lang_code = selected_lang
         self.loc = Localization(self.lang_code)
         self.settings["lang_code"] = self.lang_code
@@ -312,6 +338,7 @@ class SimsSaverApp:
 
         self.process_header_label.config(text=self.loc.get("monitored_process_title"))
         self.update_monitored_process_display()
+        self.select_process_button.config(text=self.loc.get("select_custom_process_button"))
 
         self.status_title_label.config(text=self.loc.get("status_title"))
         if not self.is_running: # Only update if not actively running
@@ -426,8 +453,8 @@ class SimsSaverApp:
         process_label = ttk.Label(process_frame, textvariable=self.monitored_process_var, style='BodyOnCard.TLabel')
         process_label.pack(anchor=tk.W)
 
-        select_button = ttk.Button(process_frame, text=self.loc.get("select_custom_process_button"), command=self.open_process_selection_dialog, style='Secondary.TButton')
-        select_button.pack(anchor=tk.W, pady=(12, 0))
+        self.select_process_button = ttk.Button(process_frame, text=self.loc.get("select_custom_process_button"), command=self.open_process_selection_dialog, style='Secondary.TButton')
+        self.select_process_button.pack(anchor=tk.W, pady=(12, 0))
 
     def update_monitored_process_display(self):
         """Update the display for the currently monitored process names"""

@@ -4,7 +4,7 @@ import json
 import os
 
 class Localization:
-    def __init__(self, lang_code="en"):
+    def __init__(self, lang_code="English"):
         self.lang_code = lang_code
         self.translations = self._load_translations()
 
