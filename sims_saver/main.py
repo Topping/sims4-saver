@@ -857,6 +857,7 @@ class SimsSaverApp:
             self.stop_auto_save()
         if self.tray_icon:
             self.tray_icon.stop()
+            time.sleep(0.5) # Give the tray icon a moment to fully stop
         self.root.destroy()
 
     def create_tray_icon(self):
@@ -906,7 +907,13 @@ def main():
 
     # Handle window close
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
-    root.mainloop()
+    try:
+        root.mainloop()
+    finally:
+        # Ensure tray icon is stopped even if mainloop exits unexpectedly
+        if app.tray_icon:
+            app.tray_icon.stop()
+            time.sleep(0.5)  # Give the tray icon a moment to fully stop
 
 
 if __name__ == "__main__":
