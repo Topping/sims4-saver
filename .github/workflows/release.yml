@@ -104,6 +104,6 @@ jobs:
         echo "Creating release $TAG"
         gh release create $TAG \
           artifacts/sims-saver-windows/sims-saver.exe \
-          artifacts/sims-saver-macos \
+          artifacts/sims-saver-macos/Sims4-Saver.app \
           --title "Sims4 Saver v$VERSION" \
           --notes "Release v$VERSION"
