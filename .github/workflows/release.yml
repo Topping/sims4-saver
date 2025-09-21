@@ -1,4 +1,4 @@
-name: Build Release
+name: Build and Release
 
 on: 
   push:
@@ -57,3 +57,52 @@ jobs:
       with:
         name: sims-saver-macos
         path: dist/Sims4-Saver.app
+
+  semantic-release:
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # To create a GitHub Release
+      issues: write # To update release notes
+      pull-requests: write # To update PRs with release info
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Required for semantic-release to analyze history
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: | 
+        pip install python-semantic-release
+        pip install uv
+        uv sync
+
+    - name: Download all build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Semantic Release
+      id: semantic
+      uses: paulhatch/semantic-release@v1.0.0
+      with:
+        version_source: commit
+        changelog_file: "CHANGELOG.md"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        tag_format: "v${version}"
+
+    - name: Create GitHub Release
+      if: ${{ steps.semantic.outputs.new_release_published == 'true' }}
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.semantic.outputs.new_release_tag }}
+        name: Release ${{ steps.semantic.outputs.new_release_tag }}
+        body: ${{ steps.semantic.outputs.release_notes }}
+        files: |
+          artifacts/sims-saver-windows/sims-saver.exe
+          artifacts/sims-saver-macos/Sims4-Saver.app/*
