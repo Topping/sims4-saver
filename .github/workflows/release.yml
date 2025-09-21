@@ -55,11 +55,16 @@ jobs:
     - name: Run macOS Build Script
       run: chmod +x build.sh && ./build.sh
 
+    - name: Prepare macOS Artifact
+      run: |
+        mkdir -p artifact_staging
+        mv dist/Sims4-Saver.app artifact_staging/
+
     - name: Upload macOS Application Bundle
       uses: actions/upload-artifact@v4
       with:
         name: sims-saver-macos
-        path: dist/Sims4-Saver.app
+        path: artifact_staging/
 
   release:
     needs: [build-windows, build-macos]
