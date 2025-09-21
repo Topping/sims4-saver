@@ -16,7 +16,7 @@ uv sync
 
 REM Build the executable
 echo Building executable...
-uv run pyinstaller --onefile --windowed sims_saver/main.py --name sims-saver --add-data "sims_saver;sims_saver"
+uv run pyinstaller sims-saver.spec
 
 REM Check if build was successful
 if exist dist\sims-saver.exe (

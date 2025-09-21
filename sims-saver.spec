@@ -1,12 +1,18 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import platform
+import os
 
 a = Analysis(
-    ['sims_saver\\main.py'],
+    [os.path.join('sims_saver', 'main.py')],
     pathex=[],
     binaries=[],
-    datas=[],
-    hiddenimports=[],
+    datas=[('sims_saver/localization.py', 'sims_saver/'),
+           ('icon.ico', '.'),
+           ('icon.png', '.'),
+           ('icon.icns', '.'),
+           ],
+    hiddenimports=['pystray'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -16,13 +22,24 @@ a = Analysis(
 )
 pyz = PYZ(a.pure)
 
+exe_name = 'sims-saver'
+exe_icon = 'icon.ico'
+
+if platform.system() == "Darwin": # macOS
+    exe_name = 'Sims4-Saver'
+    exe_icon = 'icon.icns'
+elif platform.system() == "Windows": # Windows
+    exe_name = 'sims-saver'
+    exe_icon = 'icon.ico'
+
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
     a.datas,
     [],
-    name='sims-saver',
+    name=exe_name,
+    icon=exe_icon,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -36,3 +53,17 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
+
+app = BUNDLE(
+    exe,
+    name='Sims4-Saver.app',
+    icon='icon.icns',
+    bundle_identifier=None,
+    info_plist={
+        'CFBundleName': 'Sims4-Saver',
+        'CFBundleDisplayName': 'Sims4-Saver',
+        'CFBundleVersion': '1.0.0',
+        'CFBundleShortVersionString': '1.0.0',
+        'NSHumanReadableCopyright': 'Your Copyright 2023',
+    },
+ )

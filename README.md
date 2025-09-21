@@ -13,7 +13,7 @@ A small Windows utility that automatically presses configurable keys at set inte
 
 ## Requirements
 
-- Windows 10/11
+- Windows 10/11 or MacOS (arm)
 - Python 3.8+ (for development)
 - The Sims 4 game
 
@@ -77,7 +77,7 @@ To build a standalone executable:
 uv add pyinstaller
 
 # Build the executable
-uv run pyinstaller --onefile --windowed sims_saver/main.py --name sims-saver
+uv run pyinstaller sims-saver.spec
 ```
 
 The executable will be created in the `dist/` directory.

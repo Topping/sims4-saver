@@ -1,6 +1,12 @@
 {
-  "interval_minutes": 5,
+  "interval_slider_value": 70,
   "test_mode": false,
-  "interval_slider_value": 3,
-  "selected_key": "escape"
+  "selected_key": "escape",
+  "monitored_process_name": [
+    "ts4.exe",
+    "the sims 4.exe",
+    "ts4_x64.exe"
+  ],
+  "lang_code": "en",
+  "play_sound_cue": false
 }

@@ -1,0 +1,106 @@
+name: Build and Release
+
+on: 
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write # Required to create a release
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install uv
+      run: pip install uv
+
+    - name: Install dependencies
+      run: uv sync
+
+    - name: Run Windows Build Script
+      run: .\build.bat
+
+    - name: Upload Windows Executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: sims-saver-windows
+        path: dist/sims-saver.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install uv
+      run: pip install uv
+
+    - name: Install dependencies
+      run: uv sync
+
+    - name: Run macOS Build Script
+      run: chmod +x build.sh && ./build.sh
+
+    - name: Prepare macOS Artifact
+      run: |
+        mkdir -p artifact_staging
+        mv dist/Sims4-Saver.app artifact_staging/
+
+    - name: Upload macOS Application Bundle
+      uses: actions/upload-artifact@v4
+      with:
+        name: sims-saver-macos
+        path: artifact_staging/
+
+  release:
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Required for semantic-version to work correctly
+
+    - name: Get semantic version
+      id: semver
+      uses: paulhatch/semantic-version@v5.4.0
+      with:
+        tag_prefix: "v"
+        major_pattern: "(MAJOR)"
+        minor_pattern: "(MINOR)"
+        version_format: "${major}.${minor}.${patch}"
+
+    - name: Download all build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Archive macOS Application Bundle
+      run: cd artifacts/sims-saver-macos && zip -r ../Sims4-Saver-macos.zip Sims4-Saver.app
+
+    - name: Create GitHub Release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        VERSION="${{ steps.semver.outputs.version }}"
+        TAG="v$VERSION"
+        echo "Creating release $TAG"
+        gh release create $TAG \
+          artifacts/sims-saver-windows/sims-saver.exe \
+          artifacts/Sims4-Saver-macos.zip \
+          --title "Sims4 Saver v$VERSION" \
+          --notes "Release v$VERSION"
