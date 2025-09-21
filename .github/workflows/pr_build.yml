@@ -1,0 +1,49 @@
+name: PR Build Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-windows-pr:
+    runs-on: windows-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install uv
+      run: pip install uv
+
+    - name: Install dependencies
+      run: uv sync
+
+    - name: Run Windows Build Script
+      run: .\build.bat
+
+  build-macos-pr:
+    runs-on: macos-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install uv
+      run: pip install uv
+
+    - name: Install dependencies
+      run: uv sync
+
+    - name: Run macOS Build Script
+      run: chmod +x build.sh && ./build.sh
