@@ -1,16 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import platform
+import os
 
 a = Analysis(
-    ['sims_saver\\main.py'],
+    [os.path.join('sims_saver', 'main.py')],
     pathex=[],
     binaries=[],
     datas=[('sims_saver/localization.py', 'sims_saver/'),
            ('icon.ico', '.'),
            ('icon.png', '.'),
            ('icon.icns', '.'),
-           ('sims_saver/save_sound.wav', 'sims_saver/')],
+           ],
     hiddenimports=['pystray'],
     hookspath=[],
     hooksconfig={},
