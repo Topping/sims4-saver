@@ -89,11 +89,8 @@ jobs:
       with:
         path: artifacts
 
-    - name: List artifacts directory content
-      run: ls -R artifacts
-
     - name: Archive macOS Application Bundle
-      run: zip -r artifacts/Sims4-Saver-macos.zip artifacts/sims-saver-macos/Sims4-Saver.app
+      run: cd artifacts/sims-saver-macos && zip -r ../Sims4-Saver-macos.zip Sims4-Saver.app
 
     - name: Create GitHub Release
       env:
