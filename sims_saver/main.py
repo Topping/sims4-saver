@@ -103,7 +103,6 @@ class SimsSaverApp:
         
         # Initialize tray icon
         self.tray_icon = None
-        self.create_tray_icon()
 
     def setup_modern_style(self):
         """Setup modern Material Design-inspired styling"""
@@ -862,11 +861,8 @@ class SimsSaverApp:
 
     def create_tray_icon(self):
         """Creates a system tray icon for the application."""
-        if self.tray_icon is not None:
-            # Ensure to stop the existing tray icon on the main thread if it exists
-            self.root.after(0, self.tray_icon.stop)
-            self.tray_icon = None
-
+        # This method is now called after root.mainloop() starts, from the main thread.
+        # So we can directly create the icon without further `after` scheduling here.
         # Define the icon image
         # pystray requires a PIL Image object
         icon_filename = "icon.ico" if platform.system() == "Windows" else "icon.png"
@@ -908,6 +904,9 @@ def main():
 
     # Handle window close
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
+    # Schedule tray icon creation after the mainloop starts to avoid blocking UI
+    app.tray_icon = None # Initialize to None before scheduling creation
+    root.after(0, app.create_tray_icon)
     try:
         root.mainloop()
     finally:
