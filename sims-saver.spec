@@ -5,7 +5,7 @@ a = Analysis(
     ['sims_saver\\main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('sims_saver/localization.py', 'sims_saver/')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

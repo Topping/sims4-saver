@@ -15,25 +15,18 @@ from tkinter import ttk, messagebox
 import psutil
 from pynput.keyboard import Controller, Key
 
+from sims_saver.localization import Localization
+
 
 class SimsSaverApp:
     def __init__(self, root):
-        self.root = root
-        self.root.title("The Sims 4 Save Helper")
-        self.root.geometry("500x800")
-        self.root.resizable(False, False)
-
-        # Auto-save state
-        self.is_running = False
-        self.auto_save_thread = None
-        self.keyboard = Controller()
-
         # Default settings
         self.DEFAULT_SETTINGS = {
             "interval_slider_value": 70,
             "test_mode": False,
             "selected_key": "escape",
-            "monitored_process_name": ["ts4.exe", "the sims 4.exe", "ts4_x64.exe"]
+            "monitored_process_name": ["ts4.exe", "the sims 4.exe", "ts4_x64.exe"],
+            "lang_code": "en"
         }
 
         # Load settings
@@ -42,7 +35,19 @@ class SimsSaverApp:
         self.test_mode = self.settings.get("test_mode", False)
         self.selected_key = self.settings.get("selected_key", "escape")
         self.monitored_process_name = self.settings.get("monitored_process_name", ["ts4.exe", "the sims 4.exe", "ts4_x64.exe"])
+        self.lang_code = self.settings.get("lang_code", "en")
+        self.loc = Localization(self.lang_code)
         
+        self.root = root
+        self.root.title(self.loc.get("app_title"))
+        self.root.geometry("500x800")
+        self.root.resizable(False, False)
+
+        # Auto-save state
+        self.is_running = False
+        self.auto_save_thread = None
+        self.keyboard = Controller()
+
         # Load interval setting with new non-linear mapping
         if "interval_slider_value" in self.settings:
             self.interval_slider_value = self.settings["interval_slider_value"]
@@ -52,15 +57,16 @@ class SimsSaverApp:
 
         # Available keys for dropdown
         self.available_keys = {
-            "escape": "Escape (opens menu)",
-            "f5": "F5 (common save key)",
-            "f9": "F9 (common quicksave key)",
-            "ctrl+s": "Ctrl+S (standard save)",
-            "ctrl+shift+s": "Ctrl+Shift+S (custom save)"
+            "escape": self.loc.get("key_escape"),
+            "f5": self.loc.get("key_f5"),
+            "f9": self.loc.get("key_f9"),
+            "ctrl+s": self.loc.get("key_ctrl_s"),
+            "ctrl+shift+s": self.loc.get("key_ctrl_shift_s")
         }
 
         self.setup_modern_style()
         self.create_gui()
+        self.update_gui_language()
 
     def setup_modern_style(self):
         """Setup modern Material Design-inspired styling"""
@@ -185,11 +191,11 @@ class SimsSaverApp:
         if value <= 30:
             # Map 0-30 to seconds 1-59 (approximately 2 seconds per slider position)
             seconds = max(1, int(1 + (value * 58 / 30)))
-            display_text = f"{seconds} second{'s' if seconds != 1 else ''}"
+            display_text = f"{seconds} {self.loc.get('seconds_plural') if seconds != 1 else self.loc.get('seconds_singular')}"
         else:
             # Map 31-100 to minutes 1-30
             minutes = max(1, int(1 + ((value - 30) * 29 / 70)))
-            display_text = f"{minutes} minute{'s' if minutes != 1 else ''}"
+            display_text = f"{minutes} {self.loc.get('minutes_plural') if minutes != 1 else self.loc.get('minutes_singular')}"
             
         self.interval_display_var.set(display_text)
         self.settings["interval_slider_value"] = value
@@ -220,15 +226,18 @@ class SimsSaverApp:
 
         # App icon and title
         title_frame = tk.Frame(header_frame, bg=self.colors['background'])
-        title_frame.pack()
+        title_frame.pack(side=tk.LEFT)
 
         # Modern title with icon
-        title_label = ttk.Label(title_frame, text="🎮 Sims 4 Save Helper", style='Title.TLabel')
-        title_label.pack()
+        self.title_label = ttk.Label(title_frame, text=self.loc.get("app_title"), style='Title.TLabel')
+        self.title_label.pack(anchor=tk.W)
 
-        subtitle_label = ttk.Label(title_frame, text="Automatic save reminder system", 
+        self.subtitle_label = ttk.Label(title_frame, text=self.loc.get("app_subtitle"), 
                                   style='Body.TLabel')
-        subtitle_label.pack(pady=(4, 0))
+        self.subtitle_label.pack(anchor=tk.W, pady=(4, 0))
+
+        # Language picker
+        self.create_language_picker(header_frame)
 
         # Main content card
         self.main_card = self.create_card(main_container)
@@ -259,14 +268,69 @@ class SimsSaverApp:
         shadow.pack(fill=tk.X, pady=(0, 0))
         return card
 
+    def create_language_picker(self, parent):
+        lang_frame = tk.Frame(parent, bg=self.colors['background'])
+        lang_frame.pack(side=tk.RIGHT)
+
+        self.lang_var = tk.StringVar(value=self.lang_code)
+        self.lang_picker = ttk.Combobox(lang_frame, textvariable=self.lang_var,
+                                        values=["en", "da"], state="readonly", width=5,
+                                        style='Modern.TCombobox')
+        self.lang_picker.pack(side=tk.RIGHT)
+        self.lang_picker.bind("<<ComboboxSelected>>", self.on_language_selected)
+
+    def on_language_selected(self, event=None):
+        selected_lang = self.lang_var.get()
+        self.lang_code = selected_lang
+        self.loc = Localization(self.lang_code)
+        self.settings["lang_code"] = self.lang_code
+        self.save_settings()
+        self.update_gui_language()
+
+    def update_gui_language(self):
+        self.root.title(self.loc.get("app_title"))
+        self.title_label.config(text=self.loc.get("app_title"))
+        self.subtitle_label.config(text=self.loc.get("app_subtitle"))
+        
+        self.interval_header_label.config(text=self.loc.get("save_interval_title"))
+        self.on_interval_changed(self.interval_slider_value) # Update interval display
+        self.one_sec_label.config(text=self.loc.get("one_sec"))
+        self.thirty_min_label.config(text=self.loc.get("thirty_min"))
+
+        self.key_header_label.config(text=self.loc.get("key_to_press_title"))
+        self.available_keys = {
+            "escape": self.loc.get("key_escape"),
+            "f5": self.loc.get("key_f5"),
+            "f9": self.loc.get("key_f9"),
+            "ctrl+s": self.loc.get("key_ctrl_s"),
+            "ctrl+shift+s": self.loc.get("key_ctrl_shift_s")
+        }
+        self.key_dropdown.config(values=list(self.available_keys.keys()))
+        self.key_description_var.set(self.available_keys[self.selected_key])
+
+        self.test_mode_check.config(text=self.loc.get("test_mode_checkbox"))
+
+        self.process_header_label.config(text=self.loc.get("monitored_process_title"))
+        self.update_monitored_process_display()
+
+        self.status_title_label.config(text=self.loc.get("status_title"))
+        if not self.is_running: # Only update if not actively running
+            self.status_var.set(self.loc.get("status_ready"))
+
+        self.start_button.config(text=self.loc.get("start_helper_button"))
+        self.stop_button.config(text=self.loc.get("stop_helper_button"))
+        self.revert_button.config(text=self.loc.get("revert_to_defaults_button"))
+        self.info_label.config(text=self.loc.get("info_text"))
+
+
     def create_interval_section(self):
         """Create the interval configuration section"""
         # Section header
         interval_header = tk.Frame(self.main_card, bg=self.colors['card'])
         interval_header.pack(fill=tk.X, padx=24, pady=(24, 16))
 
-        header_label = ttk.Label(interval_header, text="Save Interval", style='Heading.TLabel')
-        header_label.pack(anchor=tk.W)
+        self.interval_header_label = ttk.Label(interval_header, text=self.loc.get("save_interval_title"), style='Heading.TLabel')
+        self.interval_header_label.pack(anchor=tk.W)
 
         # Interval display
         display_frame = tk.Frame(self.main_card, bg=self.colors['card'])
@@ -295,8 +359,10 @@ class SimsSaverApp:
         labels_frame = tk.Frame(slider_container, bg=self.colors['card'])
         labels_frame.pack(fill=tk.X, pady=(4, 0))
 
-        ttk.Label(labels_frame, text="1 sec", style='BodyOnCard.TLabel').pack(side=tk.LEFT)
-        ttk.Label(labels_frame, text="30 min", style='BodyOnCard.TLabel').pack(side=tk.RIGHT)
+        self.one_sec_label = ttk.Label(labels_frame, text=self.loc.get("one_sec"), style='BodyOnCard.TLabel')
+        self.one_sec_label.pack(side=tk.LEFT)
+        self.thirty_min_label = ttk.Label(labels_frame, text=self.loc.get("thirty_min"), style='BodyOnCard.TLabel')
+        self.thirty_min_label.pack(side=tk.RIGHT)
 
         self.on_interval_changed(self.interval_slider_value)
 
@@ -306,8 +372,8 @@ class SimsSaverApp:
         key_header = tk.Frame(self.main_card, bg=self.colors['card'])
         key_header.pack(fill=tk.X, padx=24, pady=(16, 12))
 
-        header_label = ttk.Label(key_header, text="Key to Press", style='Heading.TLabel')
-        header_label.pack(anchor=tk.W)
+        self.key_header_label = ttk.Label(key_header, text=self.loc.get("key_to_press_title"), style='Heading.TLabel')
+        self.key_header_label.pack(anchor=tk.W)
 
         # Key selection container
         key_container = tk.Frame(self.main_card, bg=self.colors['card'])
@@ -341,7 +407,7 @@ class SimsSaverApp:
 
         self.test_mode_var = tk.BooleanVar(value=self.test_mode)
         self.test_mode_check = ttk.Checkbutton(checkbox_container,
-                                              text="Test Mode - Press keys regardless of game status",
+                                              text=self.loc.get("test_mode_checkbox"),
                                               variable=self.test_mode_var,
                                               command=self.toggle_test_mode,
                                               style='Modern.TCheckbutton')
@@ -352,26 +418,26 @@ class SimsSaverApp:
         process_frame = tk.Frame(self.main_card, bg=self.colors['card'])
         process_frame.pack(fill=tk.X, padx=24, pady=(16, 16))
 
-        header_label = ttk.Label(process_frame, text="Monitored Process", style='Heading.TLabel')
-        header_label.pack(anchor=tk.W, pady=(0, 8))
+        self.process_header_label = ttk.Label(process_frame, text=self.loc.get("monitored_process_title"), style='Heading.TLabel')
+        self.process_header_label.pack(anchor=tk.W, pady=(0, 8))
 
         self.monitored_process_var = tk.StringVar()
         self.update_monitored_process_display()
         process_label = ttk.Label(process_frame, textvariable=self.monitored_process_var, style='BodyOnCard.TLabel')
         process_label.pack(anchor=tk.W)
 
-        select_button = ttk.Button(process_frame, text="Select Custom Process", command=self.open_process_selection_dialog, style='Secondary.TButton')
+        select_button = ttk.Button(process_frame, text=self.loc.get("select_custom_process_button"), command=self.open_process_selection_dialog, style='Secondary.TButton')
         select_button.pack(anchor=tk.W, pady=(12, 0))
 
     def update_monitored_process_display(self):
         """Update the display for the currently monitored process names"""
         display_names = [name.replace('.exe', '') for name in self.monitored_process_name]
-        self.monitored_process_var.set(f"Currently monitoring: {', '.join(display_names)}")
+        self.monitored_process_var.set(self.loc.get("currently_monitoring", process_names=', '.join(display_names)))
 
     def open_process_selection_dialog(self):
         """Open a dialog for the user to select a custom process to monitor"""
         dialog = tk.Toplevel(self.root)
-        dialog.title("Select Process to Monitor")
+        dialog.title(self.loc.get("select_process_dialog_title"))
         dialog.geometry("400x600")
         dialog.transient(self.root)  # Make dialog appear on top of main window
         dialog.grab_set()  # Modal dialog
@@ -386,7 +452,7 @@ class SimsSaverApp:
         # Header
         header_frame = tk.Frame(dialog, bg=self.colors['background'])
         header_frame.pack(fill=tk.X, padx=16, pady=(16, 8))
-        ttk.Label(header_frame, text="Select a process from the list:", style='Dialog.TLabel').pack(anchor=tk.W)
+        ttk.Label(header_frame, text=self.loc.get("select_process_dialog_header"), style='Dialog.TLabel').pack(anchor=tk.W)
 
         # Search bar
         search_frame = tk.Frame(dialog, bg=self.colors['background'])
@@ -448,8 +514,8 @@ class SimsSaverApp:
         def on_cancel():
             dialog.destroy()
 
-        ttk.Button(button_frame, text="Select", command=on_select, style='Dialog.TButton').pack(side=tk.LEFT, padx=(0, 8))
-        ttk.Button(button_frame, text="Cancel", command=on_cancel, style='Secondary.TButton').pack(side=tk.LEFT)
+        ttk.Button(button_frame, text=self.loc.get("select_button"), command=on_select, style='Dialog.TButton').pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(button_frame, text=self.loc.get("cancel_button"), command=on_cancel, style='Secondary.TButton').pack(side=tk.LEFT)
 
         self.root.wait_window(dialog) # Wait for dialog to close
 
@@ -466,10 +532,10 @@ class SimsSaverApp:
         status_inner = tk.Frame(status_container, bg=self.colors['background'])
         status_inner.pack(padx=16, pady=12)
 
-        status_title = ttk.Label(status_inner, text="Status", style='Body.TLabel')
-        status_title.pack(anchor=tk.W)
+        self.status_title_label = ttk.Label(status_inner, text=self.loc.get("status_title"), style='Body.TLabel')
+        self.status_title_label.pack(anchor=tk.W)
 
-        self.status_var = tk.StringVar(value="Ready to start")
+        self.status_var = tk.StringVar(value=self.loc.get("status_ready"))
         self.status_label = ttk.Label(status_inner, textvariable=self.status_var,
                                      style='Status.TLabel')
         self.status_label.pack(anchor=tk.W, pady=(4, 0))
@@ -482,16 +548,16 @@ class SimsSaverApp:
         button_frame = tk.Frame(button_container, bg=self.colors['background'])
         button_frame.pack()
 
-        self.start_button = ttk.Button(button_frame, text="Start Helper",
+        self.start_button = ttk.Button(button_frame, text=self.loc.get("start_helper_button"),
                                       command=self.start_auto_save, style='Modern.TButton')
         self.start_button.pack(side=tk.LEFT, padx=(0, 12))
 
-        self.stop_button = ttk.Button(button_frame, text="Stop Helper",
+        self.stop_button = ttk.Button(button_frame, text=self.loc.get("stop_helper_button"),
                                      command=self.stop_auto_save, state=tk.DISABLED,
                                      style='Secondary.TButton')
         self.stop_button.pack(side=tk.LEFT, padx=(0, 12))
 
-        self.revert_button = ttk.Button(button_frame, text="Revert to Defaults",
+        self.revert_button = ttk.Button(button_frame, text=self.loc.get("revert_to_defaults_button"),
                                       command=self.revert_to_default_settings, style='Secondary.TButton')
         self.revert_button.pack(side=tk.LEFT, padx=(12, 0))
 
@@ -504,11 +570,10 @@ class SimsSaverApp:
         separator = tk.Frame(footer_frame, height=1, bg=self.colors['border'])
         separator.pack(fill=tk.X, pady=(0, 16))
 
-        info_text = ("💡 This app will press your selected key when The Sims 4 is running.\n"
-                    "Use Test Mode to verify functionality. Ensure the game has focus when keys are pressed.")
-        info_label = ttk.Label(footer_frame, text=info_text, justify=tk.LEFT,
-                              style='Body.TLabel')
-        info_label.pack(anchor=tk.W)
+        info_text = self.loc.get("info_text")
+        self.info_label = ttk.Label(footer_frame, text=info_text, justify=tk.LEFT,
+                                  style='Body.TLabel')
+        self.info_label.pack(anchor=tk.W)
 
     def is_process_running(self, process_names):
         """Check if any of the specified processes are currently running"""
@@ -563,14 +628,14 @@ class SimsSaverApp:
 
                 if self.test_mode or self.is_process_running(self.monitored_process_name):
                     if self.test_mode:
-                        self.root.after(0, lambda: self.status_var.set("Test Mode - Pressing key..."))
+                        self.root.after(0, lambda: self.status_var.set(self.loc.get("status_test_mode_pressing")))
                     else:
-                        self.root.after(0, lambda: self.status_var.set("Game detected - Pressing key..."))
+                        self.root.after(0, lambda: self.status_var.set(self.loc.get("status_game_detected_pressing")))
 
                     if self.simulate_save_keybind():
-                        self.root.after(0, lambda: self.status_var.set("✅ Key pressed successfully"))
+                        self.root.after(0, lambda: self.status_var.set(self.loc.get("status_key_pressed_success")))
                     else:
-                        self.root.after(0, lambda: self.status_var.set("❌ Key press failed"))
+                        self.root.after(0, lambda: self.status_var.set(self.loc.get("status_key_press_failed")))
 
                     # Brief pause after save
                     time.sleep(2)
@@ -578,11 +643,11 @@ class SimsSaverApp:
                         break
 
                     if self.test_mode:
-                        self.root.after(0, lambda: self.status_var.set("Test Mode - Waiting for next interval"))
+                        self.root.after(0, lambda: self.status_var.set(self.loc.get("status_test_mode_waiting")))
                     else:
-                        self.root.after(0, lambda: self.status_var.set("Running - Waiting for next interval"))
+                        self.root.after(0, lambda: self.status_var.set(self.loc.get("status_running_waiting")))
                 else:
-                    self.root.after(0, lambda: self.status_var.set("🔍 Waiting for monitored process..."))
+                    self.root.after(0, lambda: self.status_var.set(self.loc.get("status_waiting_for_process")))
 
                 # Wait for next interval with periodic checks
                 interval_seconds = self.get_interval_seconds()
@@ -595,7 +660,7 @@ class SimsSaverApp:
             except Exception as e:
                 print(f"Error in auto-save loop: {e}")
                 if self.is_running:  # Only update status if still running
-                    self.root.after(0, lambda: self.status_var.set("⚠️ Error occurred"))
+                    self.root.after(0, lambda: self.status_var.set(self.loc.get("status_error_occurred")))
                     time.sleep(5)  # Brief pause before retry
 
     def get_interval_seconds(self):
@@ -617,6 +682,7 @@ class SimsSaverApp:
         self.settings["selected_key"] = self.selected_key
         self.settings["interval_slider_value"] = self.interval_slider_value
         self.settings["monitored_process_name"] = self.monitored_process_name
+        self.settings["lang_code"] = self.lang_code
         self.save_settings()
 
         # Start auto-save
@@ -650,7 +716,7 @@ class SimsSaverApp:
         self.stop_button.config(state=tk.DISABLED)
         self.interval_slider.config(state=tk.NORMAL)
         self.key_dropdown.config(state=tk.NORMAL)
-        self.status_var.set("Ready to start")
+        self.status_var.set(self.loc.get("status_ready"))
 
     def revert_to_default_settings(self):
         """Revert all settings to their default values."""
@@ -659,6 +725,8 @@ class SimsSaverApp:
         self.selected_key = self.settings["selected_key"]
         self.interval_slider_value = self.settings["interval_slider_value"]
         self.monitored_process_name = self.settings["monitored_process_name"]
+        self.lang_code = self.settings["lang_code"]
+        self.loc = Localization(self.lang_code)
         
         # Update UI elements
         self.update_monitored_process_display()
@@ -667,8 +735,10 @@ class SimsSaverApp:
         self.interval_slider.set(self.interval_slider_value)
         self.on_interval_changed(self.interval_slider_value) 
         self.test_mode_var.set(self.test_mode) 
+        self.lang_var.set(self.lang_code)
+        self.update_gui_language()
         self.save_settings() 
-        self.root.after(0, lambda: self.status_var.set("Settings reverted to defaults"))
+        self.root.after(0, lambda: self.status_var.set(self.loc.get("settings_reverted")))
 
     def load_settings(self):
         """Load settings from file"""

@@ -2,5 +2,6 @@
   "interval_minutes": 5,
   "test_mode": false,
   "interval_slider_value": 3,
-  "selected_key": "escape"
+  "selected_key": "escape",
+  "lang_code": "da"
 }
