@@ -20,7 +20,7 @@ class SimsSaverApp:
     def __init__(self, root):
         self.root = root
         self.root.title("The Sims 4 Save Helper")
-        self.root.geometry("500x700")
+        self.root.geometry("500x800")
         self.root.resizable(False, False)
 
         # Auto-save state
@@ -28,11 +28,20 @@ class SimsSaverApp:
         self.auto_save_thread = None
         self.keyboard = Controller()
 
+        # Default settings
+        self.DEFAULT_SETTINGS = {
+            "interval_slider_value": 70,
+            "test_mode": False,
+            "selected_key": "escape",
+            "monitored_process_name": ["ts4.exe", "the sims 4.exe", "ts4_x64.exe"]
+        }
+
         # Load settings
         self.settings_file = os.path.join(os.path.dirname(__file__), "settings.json")
         self.settings = self.load_settings()
         self.test_mode = self.settings.get("test_mode", False)
         self.selected_key = self.settings.get("selected_key", "escape")
+        self.monitored_process_name = self.settings.get("monitored_process_name", ["ts4.exe", "the sims 4.exe", "ts4_x64.exe"])
         
         # Load interval setting with new non-linear mapping
         if "interval_slider_value" in self.settings:
@@ -214,7 +223,7 @@ class SimsSaverApp:
         title_frame.pack()
 
         # Modern title with icon
-        title_label = ttk.Label(title_frame, text="🎮 Sims 4 Auto-Saver", style='Title.TLabel')
+        title_label = ttk.Label(title_frame, text="🎮 Sims 4 Save Helper", style='Title.TLabel')
         title_label.pack()
 
         subtitle_label = ttk.Label(title_frame, text="Automatic save reminder system", 
@@ -233,6 +242,9 @@ class SimsSaverApp:
 
         # Test mode section
         self.create_test_mode_section()
+
+        # Process selection section
+        self.create_process_selection_section()
 
         # Status, actions, and footer are moved out of the card
         self.create_status_section(main_container)
@@ -335,6 +347,112 @@ class SimsSaverApp:
                                               style='Modern.TCheckbutton')
         self.test_mode_check.pack()
 
+    def create_process_selection_section(self):
+        """Create the process selection section"""
+        process_frame = tk.Frame(self.main_card, bg=self.colors['card'])
+        process_frame.pack(fill=tk.X, padx=24, pady=(16, 16))
+
+        header_label = ttk.Label(process_frame, text="Monitored Process", style='Heading.TLabel')
+        header_label.pack(anchor=tk.W, pady=(0, 8))
+
+        self.monitored_process_var = tk.StringVar()
+        self.update_monitored_process_display()
+        process_label = ttk.Label(process_frame, textvariable=self.monitored_process_var, style='BodyOnCard.TLabel')
+        process_label.pack(anchor=tk.W)
+
+        select_button = ttk.Button(process_frame, text="Select Custom Process", command=self.open_process_selection_dialog, style='Secondary.TButton')
+        select_button.pack(anchor=tk.W, pady=(12, 0))
+
+    def update_monitored_process_display(self):
+        """Update the display for the currently monitored process names"""
+        display_names = [name.replace('.exe', '') for name in self.monitored_process_name]
+        self.monitored_process_var.set(f"Currently monitoring: {', '.join(display_names)}")
+
+    def open_process_selection_dialog(self):
+        """Open a dialog for the user to select a custom process to monitor"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Select Process to Monitor")
+        dialog.geometry("400x600")
+        dialog.transient(self.root)  # Make dialog appear on top of main window
+        dialog.grab_set()  # Modal dialog
+
+        # Styles for dialog
+        dialog.configure(bg=self.colors['background'])
+        style = ttk.Style()
+        style.configure('Dialog.TLabel', background=self.colors['background'], foreground=self.colors['text_primary'], font=('Segoe UI', 10))
+        style.configure('Dialog.TButton', background=self.colors['primary'], foreground='white', borderwidth=0, font=('Segoe UI', 9, 'bold'))
+        style.map('Dialog.TButton', background=[('active', self.colors['primary_dark'])])
+
+        # Header
+        header_frame = tk.Frame(dialog, bg=self.colors['background'])
+        header_frame.pack(fill=tk.X, padx=16, pady=(16, 8))
+        ttk.Label(header_frame, text="Select a process from the list:", style='Dialog.TLabel').pack(anchor=tk.W)
+
+        # Search bar
+        search_frame = tk.Frame(dialog, bg=self.colors['background'])
+        search_frame.pack(fill=tk.X, padx=16, pady=(0, 8))
+        search_var = tk.StringVar()
+        search_entry = ttk.Entry(search_frame, textvariable=search_var, width=40, style='Modern.TCombobox')
+        search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        # Process list
+        list_frame = tk.Frame(dialog, bg=self.colors['card'])
+        list_frame.pack(fill=tk.BOTH, expand=True, padx=16, pady=(0, 16))
+
+        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL)
+        process_listbox = tk.Listbox(list_frame, yscrollcommand=scrollbar.set, borderwidth=0, highlightthickness=0,
+                                     font=('Segoe UI', 10), selectmode=tk.EXTENDED, 
+                                     bg=self.colors['card'], fg=self.colors['text_primary'],
+                                     selectbackground=self.colors['primary_light'], selectforeground=self.colors['text_primary'])
+        scrollbar.config(command=process_listbox.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        process_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        def populate_process_list(filter_text=""):
+            process_listbox.delete(0, tk.END)
+            running_processes = []
+            for proc in psutil.process_iter(['pid', 'name', 'exe']):
+                try:
+                    if proc.info['name'] and proc.info['name'].lower().endswith('.exe'):
+                        process_name = proc.info['name']
+                        if filter_text.lower() in process_name.lower():
+                            running_processes.append(process_name)
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+            
+            running_processes = sorted(list(set(running_processes))) # Remove duplicates and sort
+            for p_name in running_processes:
+                process_listbox.insert(tk.END, p_name)
+
+        def on_search_change(*args):
+            populate_process_list(search_var.get())
+
+        search_var.trace("w", on_search_change)
+
+        populate_process_list()
+
+        # Action buttons
+        button_frame = tk.Frame(dialog, bg=self.colors['background'])
+        button_frame.pack(fill=tk.X, padx=16, pady=(0, 16))
+
+        def on_select():
+            selected_indices = process_listbox.curselection()
+            if selected_indices:
+                selected_processes = [process_listbox.get(i).lower() for i in selected_indices]
+                self.monitored_process_name = selected_processes
+                self.settings["monitored_process_name"] = self.monitored_process_name
+                self.save_settings()
+                self.update_monitored_process_display()
+            dialog.destroy()
+
+        def on_cancel():
+            dialog.destroy()
+
+        ttk.Button(button_frame, text="Select", command=on_select, style='Dialog.TButton').pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(button_frame, text="Cancel", command=on_cancel, style='Secondary.TButton').pack(side=tk.LEFT)
+
+        self.root.wait_window(dialog) # Wait for dialog to close
+
     def create_status_section(self, parent):
         """Create the status display section"""
         status_frame = tk.Frame(parent, bg=self.colors['background'])
@@ -364,14 +482,18 @@ class SimsSaverApp:
         button_frame = tk.Frame(button_container, bg=self.colors['background'])
         button_frame.pack()
 
-        self.start_button = ttk.Button(button_frame, text="Start Auto-Save",
+        self.start_button = ttk.Button(button_frame, text="Start Helper",
                                       command=self.start_auto_save, style='Modern.TButton')
         self.start_button.pack(side=tk.LEFT, padx=(0, 12))
 
-        self.stop_button = ttk.Button(button_frame, text="Stop Auto-Save",
+        self.stop_button = ttk.Button(button_frame, text="Stop Helper",
                                      command=self.stop_auto_save, state=tk.DISABLED,
                                      style='Secondary.TButton')
-        self.stop_button.pack(side=tk.LEFT)
+        self.stop_button.pack(side=tk.LEFT, padx=(0, 12))
+
+        self.revert_button = ttk.Button(button_frame, text="Revert to Defaults",
+                                      command=self.revert_to_default_settings, style='Secondary.TButton')
+        self.revert_button.pack(side=tk.LEFT, padx=(12, 0))
 
     def create_info_footer(self, parent):
         """Create the information footer"""
@@ -388,14 +510,12 @@ class SimsSaverApp:
                               style='Body.TLabel')
         info_label.pack(anchor=tk.W)
 
-    def is_sims_running(self):
-        """Check if The Sims 4 is currently running"""
+    def is_process_running(self, process_names):
+        """Check if any of the specified processes are currently running"""
         for proc in psutil.process_iter(['pid', 'name']):
             try:
                 # Check for various Sims 4 process names
-                if any(name in proc.info['name'].lower() for name in [
-                    'ts4.exe', 'the sims 4.exe', 'ts4_x64.exe'
-                ]):
+                if any(name in proc.info['name'].lower() for name in process_names):
                     return True
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
@@ -441,7 +561,7 @@ class SimsSaverApp:
                 if not self.is_running:  # Check again in case we were stopped
                     break
 
-                if self.test_mode or self.is_sims_running():
+                if self.test_mode or self.is_process_running(self.monitored_process_name):
                     if self.test_mode:
                         self.root.after(0, lambda: self.status_var.set("Test Mode - Pressing key..."))
                     else:
@@ -462,7 +582,7 @@ class SimsSaverApp:
                     else:
                         self.root.after(0, lambda: self.status_var.set("Running - Waiting for next interval"))
                 else:
-                    self.root.after(0, lambda: self.status_var.set("🔍 Waiting for Sims 4..."))
+                    self.root.after(0, lambda: self.status_var.set("🔍 Waiting for monitored process..."))
 
                 # Wait for next interval with periodic checks
                 interval_seconds = self.get_interval_seconds()
@@ -496,6 +616,7 @@ class SimsSaverApp:
         self.settings["test_mode"] = self.test_mode
         self.settings["selected_key"] = self.selected_key
         self.settings["interval_slider_value"] = self.interval_slider_value
+        self.settings["monitored_process_name"] = self.monitored_process_name
         self.save_settings()
 
         # Start auto-save
@@ -531,6 +652,24 @@ class SimsSaverApp:
         self.key_dropdown.config(state=tk.NORMAL)
         self.status_var.set("Ready to start")
 
+    def revert_to_default_settings(self):
+        """Revert all settings to their default values."""
+        self.settings = self.DEFAULT_SETTINGS.copy() # Use a copy of default settings
+        self.test_mode = self.settings["test_mode"]
+        self.selected_key = self.settings["selected_key"]
+        self.interval_slider_value = self.settings["interval_slider_value"]
+        self.monitored_process_name = self.settings["monitored_process_name"]
+        
+        # Update UI elements
+        self.update_monitored_process_display()
+        self.key_var.set(self.selected_key)
+        self.on_key_selected() 
+        self.interval_slider.set(self.interval_slider_value)
+        self.on_interval_changed(self.interval_slider_value) 
+        self.test_mode_var.set(self.test_mode) 
+        self.save_settings() 
+        self.root.after(0, lambda: self.status_var.set("Settings reverted to defaults"))
+
     def load_settings(self):
         """Load settings from file"""
         try:
@@ -539,7 +678,7 @@ class SimsSaverApp:
                     return json.load(f)
         except Exception as e:
             print(f"Error loading settings: {e}")
-        return {"interval_slider_value": 70, "test_mode": False, "selected_key": "escape"}  # Default 5 minutes
+        return self.DEFAULT_SETTINGS.copy()  # Return default settings if loading fails or file doesn't exist
 
     def save_settings(self):
         """Save settings to file"""
