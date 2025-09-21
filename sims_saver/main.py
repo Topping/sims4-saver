@@ -856,14 +856,15 @@ class SimsSaverApp:
         if self.is_running:
             self.stop_auto_save()
         if self.tray_icon:
-            self.tray_icon.stop()
-            time.sleep(0.5) # Give the tray icon a moment to fully stop
+            # Schedule tray icon stop on the main thread
+            self.root.after(0, self.tray_icon.stop)
         self.root.destroy()
 
     def create_tray_icon(self):
         """Creates a system tray icon for the application."""
         if self.tray_icon is not None:
-            self.tray_icon.stop()
+            # Ensure to stop the existing tray icon on the main thread if it exists
+            self.root.after(0, self.tray_icon.stop)
             self.tray_icon = None
 
         # Define the icon image
@@ -912,8 +913,7 @@ def main():
     finally:
         # Ensure tray icon is stopped even if mainloop exits unexpectedly
         if app.tray_icon:
-            app.tray_icon.stop()
-            time.sleep(0.5)  # Give the tray icon a moment to fully stop
+            app.root.after(0, app.tray_icon.stop)  # Schedule on the main thread
 
 
 if __name__ == "__main__":
