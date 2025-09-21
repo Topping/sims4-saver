@@ -14,6 +14,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import psutil
 from pynput.keyboard import Controller, Key
+import winsound
 
 from sims_saver.localization import Localization
 
@@ -26,7 +27,8 @@ class SimsSaverApp:
             "test_mode": False,
             "selected_key": "escape",
             "monitored_process_name": ["ts4.exe", "the sims 4.exe", "ts4_x64.exe"],
-            "lang_code": "en"
+            "lang_code": "en",
+            "play_sound_cue": False
         }
 
         # Load settings
@@ -36,11 +38,12 @@ class SimsSaverApp:
         self.selected_key = self.settings.get("selected_key", "escape")
         self.monitored_process_name = self.settings.get("monitored_process_name", ["ts4.exe", "the sims 4.exe", "ts4_x64.exe"])
         self.lang_code = self.settings.get("lang_code", "en")
+        self.play_sound_cue = self.settings.get("play_sound_cue", False)
         self.loc = Localization(self.lang_code)
         
         self.root = root
         self.root.title(self.loc.get("app_title"))
-        self.root.geometry("500x800")
+        self.root.geometry("550x800")
         self.root.resizable(False, False)
         
         # Set window icon
@@ -334,6 +337,8 @@ class SimsSaverApp:
         self.key_dropdown.config(values=list(self.available_keys.keys()))
         self.key_description_var.set(self.available_keys[self.selected_key])
 
+        self.play_sound_cue_check.config(text=self.loc.get("play_sound_cue_checkbox"))
+
         self.test_mode_check.config(text=self.loc.get("test_mode_checkbox"))
 
         self.process_header_label.config(text=self.loc.get("monitored_process_title"))
@@ -411,8 +416,17 @@ class SimsSaverApp:
         self.key_dropdown = ttk.Combobox(key_container, textvariable=self.key_var,
                                         values=key_options, state="readonly", width=20,
                                         style='Modern.TCombobox')
-        self.key_dropdown.pack(anchor=tk.W)
+        self.key_dropdown.pack(side=tk.LEFT, anchor=tk.W, padx=(0, 12))
         self.key_dropdown.bind("<<ComboboxSelected>>", self.on_key_selected)
+
+        # Sound cue checkbox next to key dropdown
+        self.play_sound_cue_var = tk.BooleanVar(value=self.play_sound_cue)
+        self.play_sound_cue_check = ttk.Checkbutton(key_container,
+                                              text=self.loc.get("play_sound_cue_checkbox"),
+                                              variable=self.play_sound_cue_var,
+                                              command=self.toggle_sound_cue,
+                                              style='Modern.TCheckbutton')
+        self.play_sound_cue_check.pack(side=tk.LEFT, anchor=tk.W)
 
         # Key description
         desc_frame = tk.Frame(self.main_card, bg=self.colors['card'])
@@ -422,6 +436,12 @@ class SimsSaverApp:
         key_desc_label = ttk.Label(desc_frame, textvariable=self.key_description_var,
                                   style='BodyOnCard.TLabel')
         key_desc_label.pack(anchor=tk.W)
+
+    def toggle_sound_cue(self):
+        """Handle sound cue toggle"""
+        self.play_sound_cue = self.play_sound_cue_var.get()
+        self.settings["play_sound_cue"] = self.play_sound_cue
+        self.save_settings()
 
     def create_test_mode_section(self):
         """Create the test mode section"""
@@ -641,6 +661,14 @@ class SimsSaverApp:
                 self.keyboard.press(Key.esc)
                 self.keyboard.release(Key.esc)
 
+            if self.play_sound_cue:
+                try:
+                    winsound.PlaySound("SystemExclamation", winsound.SND_ALIAS)
+                except ImportError:
+                    print("winsound module not available. Skipping sound cue.")
+                except Exception as e:
+                    print(f"Error playing sound cue: {e}")
+
             return True
         except Exception as e:
             print(f"Error simulating key press: {e}")
@@ -710,6 +738,7 @@ class SimsSaverApp:
         self.settings["interval_slider_value"] = self.interval_slider_value
         self.settings["monitored_process_name"] = self.monitored_process_name
         self.settings["lang_code"] = self.lang_code
+        self.settings["play_sound_cue"] = self.play_sound_cue
         self.save_settings()
 
         # Start auto-save
@@ -753,6 +782,7 @@ class SimsSaverApp:
         self.interval_slider_value = self.settings["interval_slider_value"]
         self.monitored_process_name = self.settings["monitored_process_name"]
         self.lang_code = self.settings["lang_code"]
+        self.play_sound_cue = self.settings["play_sound_cue"]
         self.loc = Localization(self.lang_code)
         
         # Update UI elements
@@ -762,7 +792,9 @@ class SimsSaverApp:
         self.interval_slider.set(self.interval_slider_value)
         self.on_interval_changed(self.interval_slider_value) 
         self.test_mode_var.set(self.test_mode) 
-        self.lang_var.set(self.lang_code)
+        self.play_sound_cue_var.set(self.play_sound_cue) # Reset play_sound_cue_var
+        self.play_sound_cue_check.config(text=self.loc.get("play_sound_cue_checkbox")) # Update checkbox text
+        self.lang_var.set(self.language_options.get(self.lang_code, "English"))
         self.update_gui_language()
         self.save_settings() 
         self.root.after(0, lambda: self.status_var.set(self.loc.get("settings_reverted")))

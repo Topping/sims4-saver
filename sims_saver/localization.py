@@ -48,7 +48,9 @@ class Localization:
             "select_process_dialog_header": "Select a process from the list:",
             "select_button": "Select",
             "cancel_button": "Cancel",
-            "settings_reverted": "Settings reverted to defaults"
+            "settings_reverted": "Settings reverted to defaults",
+            "play_sound_cue_title": "Sound Cue",
+            "play_sound_cue_checkbox": "Play a sound cue when key is pressed"
         }
 
         # Danish translations
@@ -90,7 +92,9 @@ class Localization:
             "select_process_dialog_header": "Vælg en proces fra listen:",
             "select_button": "Vælg",
             "cancel_button": "Annuller",
-            "settings_reverted": "Indstillinger nulstillet til standard"
+            "settings_reverted": "Indstillinger nulstillet til standard",
+            "play_sound_cue_title": "Lydsignal",
+            "play_sound_cue_checkbox": "Afspil lydsignal når tasten trykkes"
         }
 
         all_translations = {
