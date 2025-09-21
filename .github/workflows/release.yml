@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write # Required to create a release
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -61,55 +64,35 @@ jobs:
   release:
     needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # To create/update GitHub Release, push tags
-      issues: write   # For semantic-release to manage issues (optional, but good for linking)
-      pull-requests: write # For semantic-release to manage PRs (optional)
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # Required for semantic-release to analyze history
-        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0 # Required for semantic-version to work correctly
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Get semantic version
+      id: semver
+      uses: paulhatch/semantic-version@v5.4.0
       with:
-        python-version: '3.x'
-
-    - name: Install dependencies
-      run: |
-        pip install uv
-        uv sync
-        pip install python-semantic-release
-
-    - name: Git Config
-      run: |
-        git config user.name github-actions[bot]
-        git config user.email github-actions[bot]@users.noreply.github.com
-
-    - name: Semantic Release Publish
-      id: semantic
-      run: | 
-        semantic-release publish --no-build # Assuming PyInstaller builds are done in previous jobs
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        tag_prefix: "v"
+        major_pattern: "(MAJOR)"
+        minor_pattern: "(MINOR)"
+        version_format: "${major}.${minor}.${patch}-prerelease${increment}"
 
     - name: Download all build artifacts
       uses: actions/download-artifact@v4
       with:
         path: artifacts
 
-    - name: List downloaded artifacts
-      run: ls -R artifacts
-
-    - name: Attach Assets to GitHub Release
-      if: ${{ steps.semantic.outputs.new_release_published == 'true' }}
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: ${{ steps.semantic.outputs.tag_name }}
-        files: |
-          artifacts/sims-saver-windows/sims-saver.exe
-          artifacts/sims-saver-macos/Sims4-Saver.app/*
-        append_body: true
-        body_path: CHANGELOG.md # semantic-release creates this with release notes
+    - name: Create GitHub Release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        VERSION="${{ steps.semver.outputs.version }}"
+        TAG="v$VERSION"
+        echo "Creating release $TAG"
+        gh release create $TAG \
+          artifacts/sims-saver-windows/sims-saver.exe#"Sims4 Saver for Windows" \
+          artifacts/sims-saver-macos/Sims4-Saver.app#"Sims4 Saver for macOS" \
+          --title "Sims4 Saver v$VERSION" \
+          --notes "Release v$VERSION"
