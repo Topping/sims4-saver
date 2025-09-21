@@ -84,6 +84,9 @@ jobs:
       with:
         path: artifacts
 
+    - name: List artifacts directory content
+      run: ls -R artifacts
+
     - name: Create GitHub Release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -92,7 +95,7 @@ jobs:
         TAG="v$VERSION"
         echo "Creating release $TAG"
         gh release create $TAG \
-          artifacts/sims-saver-windows/sims-saver.exe#"Sims4 Saver for Windows" \
-          artifacts/sims-saver-macos/Sims4-Saver.app#"Sims4 Saver for macOS" \
+          artifacts/sims-saver-windows/sims-saver.exe \
+          artifacts/sims-saver-macos \
           --title "Sims4 Saver v$VERSION" \
           --notes "Release v$VERSION"
