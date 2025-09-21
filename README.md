@@ -77,7 +77,7 @@ To build a standalone executable:
 uv add pyinstaller
 
 # Build the executable
-uv run pyinstaller --onefile --windowed sims_saver/main.py --name sims-saver
+uv run pyinstaller sims-saver.spec
 ```
 
 The executable will be created in the `dist/` directory.

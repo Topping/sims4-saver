@@ -19,7 +19,7 @@ from pynput.keyboard import Controller, Key
 class SimsSaverApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("The Sims 4 Auto-Saver")
+        self.root.title("The Sims 4 Save Helper")
         self.root.geometry("500x700")
         self.root.resizable(False, False)
 

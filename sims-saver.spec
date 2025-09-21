@@ -23,6 +23,7 @@ exe = EXE(
     a.datas,
     [],
     name='sims-saver',
+    icon='icon.ico',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
