@@ -22,14 +22,14 @@ a = Analysis(
 )
 pyz = PYZ(a.pure)
 
-exe_name = 'sims-saver'
+exe_name = 'Sims4-Save-Helper'
 exe_icon = 'icon.ico'
 
 if platform.system() == "Darwin": # macOS
-    exe_name = 'Sims4-Saver'
+    exe_name = 'Sims4-Save-Helper'
     exe_icon = 'icon.icns'
 elif platform.system() == "Windows": # Windows
-    exe_name = 'sims-saver'
+    exe_name = 'Sims4-Save-Helper'
     exe_icon = 'icon.ico'
 
 exe = EXE(
@@ -56,14 +56,14 @@ exe = EXE(
 
 app = BUNDLE(
     exe,
-    name='Sims4-Saver.app',
+    name='Sims4-Save-Helper.app',
     icon='icon.icns',
     bundle_identifier=None,
     info_plist={
-        'CFBundleName': 'Sims4-Saver',
-        'CFBundleDisplayName': 'Sims4-Saver',
+        'CFBundleName': 'Sims4-Save-Helper',
+        'CFBundleDisplayName': 'Sims4-Save-Helper',
         'CFBundleVersion': '1.0.0',
         'CFBundleShortVersionString': '1.0.0',
-        'NSHumanReadableCopyright': 'Your Copyright 2023',
+        'NSHumanReadableCopyright': 'Topping 2025',
     },
  )

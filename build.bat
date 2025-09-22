@@ -19,9 +19,9 @@ echo Building executable...
 uv run pyinstaller sims-saver.spec
 
 REM Check if build was successful
-if exist dist\sims-saver.exe (
+if exist dist\Sims4-Save-Helper.exe (
     echo.
-    echo Build successful! Executable created at: dist\sims-saver.exe
+    echo Build successful! Executable created at: dist\Sims4-Save-Helper.exe
     echo.
     echo You can now run the executable or distribute it to other Windows machines.
 ) else (

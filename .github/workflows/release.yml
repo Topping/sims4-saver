@@ -90,7 +90,7 @@ jobs:
         path: artifacts
 
     - name: Archive macOS Application Bundle
-      run: cd artifacts/sims-saver-macos && zip -r ../Sims4-Saver-macos.zip Sims4-Saver.app
+      run: cd artifacts/sims-saver-macos && zip -r ../Sims4-Save-Helper-MacOS.zip Sims4-Save-Helper.app
 
     - name: Create GitHub Release
       env:
@@ -100,7 +100,7 @@ jobs:
         TAG="v$VERSION"
         echo "Creating release $TAG"
         gh release create $TAG \
-          artifacts/sims-saver-windows/sims-saver.exe \
-          artifacts/Sims4-Saver-macos.zip \
-          --title "Sims4 Saver v$VERSION" \
+          artifacts/sims-saver-windows/Sims4-Save-Helper.exe \
+          artifacts/Sims4-Save-Helper-MacOS.zip \
+          --title "The Sims 4 Save Helper v$VERSION" \
           --notes "Release v$VERSION"

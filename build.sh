@@ -22,9 +22,9 @@ echo "Building executable..."
 uv run pyinstaller sims-saver.spec
 
 # Check if build was successful
-if [ -d "dist/Sims4-Saver.app" ]; then
+if [ -d "dist/Sims4-Save-Helper.app" ]; then
     echo ""
-    echo "Build successful! Application created at: dist/Sims4-Saver.app"
+    echo "Build successful! Application created at: dist/Sims4-Save-Helper.app"
     echo ""
     echo "You can now run the application or distribute it to other macOS machines."
 else

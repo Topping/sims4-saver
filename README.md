@@ -1,4 +1,4 @@
-# 🎮 The Sims 4 Auto-Saver
+# 🎮 The Sims 4 Save Helper
 
 A small utility that automatically presses configurable keys at set intervals when The Sims 4 is running. Since auto save is lacking in Sims 4, this program simply presses the escape key at regular intervals, to help remind you to save your game. While this is made with The Sims 4 in mind, if you have other games without auto save, this will work there as well.
 
