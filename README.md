@@ -12,6 +12,7 @@ A small utility that automatically presses configurable keys at set intervals wh
   * Unzip the folder
   * Move the .app file to the 'applications' folder on your machine, or just run the .app file directly
 
+
 ![App Screenshot](assets/app.png)
 
 ## Features
