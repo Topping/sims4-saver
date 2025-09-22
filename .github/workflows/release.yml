@@ -33,7 +33,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: sims-saver-windows
-        path: dist/sims-saver.exe
+        path: dist/Sims4-Save-Helper.exe
 
   build-macos:
     runs-on: macos-latest
@@ -58,7 +58,7 @@ jobs:
     - name: Prepare macOS Artifact
       run: |
         mkdir -p artifact_staging
-        mv dist/Sims4-Saver.app artifact_staging/
+        mv dist/Sims4-Save-Helper.app artifact_staging/
 
     - name: Upload macOS Application Bundle
       uses: actions/upload-artifact@v4
