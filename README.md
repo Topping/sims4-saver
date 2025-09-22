@@ -2,6 +2,17 @@
 
 A small Windows utility that automatically presses configurable keys at set intervals when The Sims 4 is running. Since auto save is lacking in Sims 4, this program simply presses the escape key at regular intervals, to help remind you to save your game. While this is made with The Sims 4 in mind, if you have other games without auto save, this will work there as well.
 
+## Usage from Release
+* Navigate to the release page (https://github.com/Topping/sims4-saver/releases)
+* Find the latest release
+* For Windows:
+  * Download the .exe file
+  * Double-click the .exe file
+* For MacOS (ARM):
+  * Download the .zip file
+  * Unzip the folder
+  * Move the .app file to the 'applications' folder on your machine, or just run the .app file directly
+
 ## Features
 
 - **Detects The Sims 4** - Only runs when the game is detected
