@@ -32,10 +32,14 @@ jobs:
           python-version: "3.12"
       - run: pip install uv
       - run: make build
+      - name: Zip macOS app bundle
+        run: |
+          cd dist
+          zip -r Sims4-Save-Helper-macOS.zip Sims4-Save-Helper.app
       - uses: actions/upload-artifact@v4
         with:
           name: sims-saver-macos
-          path: dist/Sims4-Save-Helper.app
+          path: dist/Sims4-Save-Helper-macOS.zip
 
   release:
     needs: [build-windows, build-macos]
@@ -48,10 +52,6 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
-      - name: Archive macOS app
-        run: |
-          cd artifacts/sims-saver-macos
-          zip -r ../Sims4-Save-Helper-macOS.zip Sims4-Save-Helper.app
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,6 +59,6 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           gh release create "v$VERSION" \
             artifacts/sims-saver-windows/Sims4-Save-Helper.exe \
-            artifacts/Sims4-Save-Helper-macOS.zip \
+            artifacts/sims-saver-macos/Sims4-Save-Helper-macOS.zip \
             --title "Sims4 Save Helper - Build $VERSION" \
             --notes "Automated build $VERSION"
