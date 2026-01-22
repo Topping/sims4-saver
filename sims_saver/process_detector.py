@@ -18,6 +18,8 @@ class ProcessDetector:
         # Windows
         "ts4.exe",
         "ts4_x64.exe",
+        "TS4_x64_fpb",
+        "TS4_x64_fpb.exe",
         "the sims 4.exe",
         "sims4.exe",
         # macOS
