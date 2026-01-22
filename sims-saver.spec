@@ -69,7 +69,6 @@ a = Analysis(
         'PySide6.QtHelp',
         'PySide6.QtMultimedia',
         'PySide6.QtMultimediaWidgets',
-        'PySide6.QtNetwork',
         'PySide6.QtNetworkAuth',
         'PySide6.QtNfc',
         'PySide6.QtOpenGL',
