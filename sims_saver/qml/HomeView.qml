@@ -165,11 +165,28 @@ Page {
                         width: 12
                         height: 12
                         radius: 6
-                        color: AppController.processDetected ? Material.color(Material.Green) : Material.color(Material.Grey)
+                        color: {
+                            switch (AppController.detectionState) {
+                                case "idle": return Material.color(Material.Grey)
+                                case "waiting": return Material.color(Material.Amber)
+                                case "no_process": return Material.color(Material.Red)
+                                case "running": return Material.color(Material.Green)
+                                default: return Material.color(Material.Grey)
+                            }
+                        }
                     }
                     
                     Label {
-                        text: { Translator.langCode; return AppController.processDetected ? Translator.tr("game_detected") : Translator.tr("no_game_detected") }
+                        text: {
+                            Translator.langCode  // Trigger re-evaluation on language change
+                            switch (AppController.detectionState) {
+                                case "idle": return Translator.tr("no_game_detected")
+                                case "waiting": return Translator.tr("waiting_to_start")
+                                case "no_process": return Translator.tr("no_process_found")
+                                case "running": return Translator.tr("running")
+                                default: return Translator.tr("no_game_detected")
+                            }
+                        }
                         font.pixelSize: 16
                         font.weight: Font.Medium
                         Layout.fillWidth: true

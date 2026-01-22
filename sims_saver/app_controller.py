@@ -22,6 +22,7 @@ class AppController(QObject):
     processDetectedChanged = Signal()
     detectedProcessNameChanged = Signal()
     runningProcessesChanged = Signal()
+    detectionStateChanged = Signal()
 
     def __init__(self, settings_manager: SettingsManager, parent=None):
         super().__init__(parent)
@@ -81,6 +82,17 @@ class AppController(QObject):
         """List of currently running process names."""
         return self._process_detector.get_all_running_processes()
 
+    @Property(str, notify=detectionStateChanged)
+    def detectionState(self) -> str:
+        """
+        Computed detection state for UI display.
+        Returns one of: 'idle', 'waiting', 'no_process', 'running'
+        """
+        if self._is_running:
+            return "running" if self._process_detected else "no_process"
+        else:
+            return "waiting" if self._process_detected else "idle"
+
     # --- Slots (actions callable from QML) ---
 
     @Slot()
@@ -112,6 +124,7 @@ class AppController(QObject):
         # Emit signals if changed
         if was_detected != self._process_detected:
             self.processDetectedChanged.emit()
+            self.detectionStateChanged.emit()
         if old_name != self._detected_process_name:
             self.detectedProcessNameChanged.emit()
 
@@ -123,6 +136,7 @@ class AppController(QObject):
         self._process_detected = True
         self.detectedProcessNameChanged.emit()
         self.processDetectedChanged.emit()
+        self.detectionStateChanged.emit()
         
         # Update the autosave service with manual process
         if self._is_running:
@@ -136,6 +150,7 @@ class AppController(QObject):
         self._process_detected = False
         self.detectedProcessNameChanged.emit()
         self.processDetectedChanged.emit()
+        self.detectionStateChanged.emit()
         
         if self._is_running:
             self._autosave_service.set_manual_process("")
@@ -153,9 +168,8 @@ class AppController(QObject):
             test_mode=self._settings_manager.testMode
         )
         
-        # Set manual process if one was selected
-        if self._manual_process_name:
-            self._autosave_service.set_manual_process(self._manual_process_name)
+        # Always sync manual process state to service (even if empty)
+        self._autosave_service.set_manual_process(self._manual_process_name)
 
         # Start the background thread
         self._autosave_service.start()
@@ -163,6 +177,7 @@ class AppController(QObject):
         self._is_running = True
         self._status_text = "Starting..."
         self.isRunningChanged.emit()
+        self.detectionStateChanged.emit()
         self.statusTextChanged.emit()
 
     @Slot()
@@ -176,10 +191,10 @@ class AppController(QObject):
         self._autosave_service.wait(2000)  # Wait up to 2 seconds
 
         self._is_running = False
-        self._process_detected = False
+        # Don't reset _process_detected - preserve detection state when stopped
         self._status_text = "Ready to start"
         self.isRunningChanged.emit()
-        self.processDetectedChanged.emit()
+        self.detectionStateChanged.emit()
         self.statusTextChanged.emit()
 
     # --- Internal signal handlers ---
@@ -193,6 +208,7 @@ class AppController(QObject):
         """Handle process detection state changes."""
         self._process_detected = detected
         self.processDetectedChanged.emit()
+        self.detectionStateChanged.emit()
 
     def _on_process_name_changed(self, name: str):
         """Handle detected process name changes."""

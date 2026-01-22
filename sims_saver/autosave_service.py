@@ -69,6 +69,9 @@ class AutosaveService(QThread):
     def set_manual_process(self, process_name: str):
         """Set a manual process name to monitor instead of auto-detection."""
         self._manual_process = process_name
+        # Emit immediate status update if running with a process selected
+        if process_name and self._running:
+            self.statusChanged.emit("Running - Waiting for next interval")
 
     def stop(self):
         """Request the service to stop."""
