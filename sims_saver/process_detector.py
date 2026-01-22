@@ -35,7 +35,10 @@ class ProcessDetector:
     ]
 
     # Minimum similarity threshold for fuzzy matching (0-100)
-    SIMILARITY_THRESHOLD = 80
+    SIMILARITY_THRESHOLD = 90
+    
+    # Process name must contain one of these substrings to be considered for fuzzy matching
+    REQUIRED_SUBSTRINGS = ["sims", "ts4"]
 
     def __init__(self):
         self._cached_process_name: Optional[str] = None
@@ -94,18 +97,25 @@ class ProcessDetector:
                             self._cached_process_name = process_name
                             return process_name
 
-                    # Then, try fuzzy matching
-                    best_score = 0
-                    for known_name in self.KNOWN_SIMS4_PROCESSES:
-                        # Use token_set_ratio for better handling of word order
-                        score = fuzz.token_set_ratio(
-                            process_name_lower, known_name.lower()
-                        )
-                        best_score = max(best_score, score)
+                    # Only attempt fuzzy matching if process name contains a required substring
+                    # This prevents false positives like "smss.exe" matching "sims"
+                    has_required_substring = any(
+                        substr in process_name_lower 
+                        for substr in self.REQUIRED_SUBSTRINGS
+                    )
+                    
+                    if has_required_substring:
+                        best_score = 0
+                        for known_name in self.KNOWN_SIMS4_PROCESSES:
+                            # Use ratio for stricter matching (no tokenization)
+                            score = fuzz.ratio(
+                                process_name_lower, known_name.lower()
+                            )
+                            best_score = max(best_score, score)
 
-                    if best_score >= self.SIMILARITY_THRESHOLD:
-                        self._cached_process_name = process_name
-                        return process_name
+                        if best_score >= self.SIMILARITY_THRESHOLD:
+                            self._cached_process_name = process_name
+                            return process_name
 
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                     continue
@@ -159,4 +169,4 @@ class ProcessDetector:
         Returns:
             Similarity score from 0-100
         """
-        return fuzz.token_set_ratio(name1.lower(), name2.lower())
+        return fuzz.ratio(name1.lower(), name2.lower())

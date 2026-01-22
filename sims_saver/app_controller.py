@@ -36,6 +36,7 @@ class AppController(QObject):
         self._process_detected = False
         self._detected_process_name = ""
         self._manual_process_name = ""  # User-selected process override
+        self._auto_detection_suppressed = False  # Suppresses auto-detection after clearing
 
         # Background process detection timer (runs even when helper is stopped)
         self._detection_timer = QTimer(self)
@@ -110,6 +111,10 @@ class AppController(QObject):
         if self._manual_process_name:
             return
         
+        # Skip if auto-detection is suppressed (user cleared selection to pick manually)
+        if self._auto_detection_suppressed:
+            return
+        
         # Auto-detect Sims 4
         was_detected = self._process_detected
         old_name = self._detected_process_name
@@ -134,6 +139,7 @@ class AppController(QObject):
         self._manual_process_name = process_name
         self._detected_process_name = process_name
         self._process_detected = True
+        self._auto_detection_suppressed = False  # Clear suppression since user made a selection
         self.detectedProcessNameChanged.emit()
         self.processDetectedChanged.emit()
         self.detectionStateChanged.emit()
@@ -144,10 +150,11 @@ class AppController(QObject):
 
     @Slot()
     def clearManualProcess(self):
-        """Clear manual process selection, return to auto-detection."""
+        """Clear manual process selection, suppressing auto-detection to allow manual picking."""
         self._manual_process_name = ""
         self._detected_process_name = ""
         self._process_detected = False
+        self._auto_detection_suppressed = True  # Suppress until user picks or starts helper
         self.detectedProcessNameChanged.emit()
         self.processDetectedChanged.emit()
         self.detectionStateChanged.emit()
@@ -160,6 +167,9 @@ class AppController(QObject):
         """Start the autosave service."""
         if self._is_running:
             return
+
+        # Clear auto-detection suppression (user is ready to proceed)
+        self._auto_detection_suppressed = False
 
         # Configure service with current settings
         self._autosave_service.configure(
