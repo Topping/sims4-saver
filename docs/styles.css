@@ -1,0 +1,363 @@
+/* Reset and base styles */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --color-primary: #4a7c59;
+    --color-primary-dark: #3d6549;
+    --color-windows: #0078d4;
+    --color-windows-dark: #006cc1;
+    --color-macos: #555555;
+    --color-macos-dark: #444444;
+    --color-text: #333333;
+    --color-text-light: #666666;
+    --color-background: #f8faf8;
+    --color-white: #ffffff;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.6;
+    color: var(--color-text);
+    background: linear-gradient(135deg, #e8f5e9 0%, #f3e5f5 50%, #e3f2fd 100%);
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    position: relative;
+}
+
+/* Language switcher */
+.language-switcher {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    display: flex;
+    gap: 4px;
+    background: var(--color-white);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    box-shadow: var(--shadow-sm);
+}
+
+.lang-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-text-light);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.lang-btn:hover {
+    background: var(--color-background);
+    color: var(--color-text);
+}
+
+.lang-btn.active {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+/* Header */
+header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.app-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 24px;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 8px;
+}
+
+.tagline {
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    font-weight: 400;
+}
+
+/* Main content */
+main {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 40px;
+}
+
+section {
+    margin-bottom: 40px;
+}
+
+section:last-child {
+    margin-bottom: 0;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+/* Description */
+.description p {
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--color-text-light);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Downloads section */
+.downloads {
+    background: var(--color-background);
+    border-radius: var(--radius-md);
+    padding: 32px;
+    margin-left: -20px;
+    margin-right: -20px;
+}
+
+.version-info {
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+    color: var(--color-text-light);
+}
+
+.version-info .loading {
+    color: var(--color-text-light);
+    font-style: italic;
+}
+
+.version-info .version {
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.download-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 400px;
+    margin: 0 auto 24px;
+}
+
+@media (min-width: 600px) {
+    .download-buttons {
+        flex-direction: row;
+        max-width: 100%;
+        justify-content: center;
+    }
+}
+
+.download-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 28px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--color-white);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    min-width: 200px;
+}
+
+.download-btn:hover:not(.disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.download-btn:active:not(.disabled) {
+    transform: translateY(0);
+}
+
+.download-btn.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.download-btn.windows {
+    background: var(--color-windows);
+}
+
+.download-btn.windows:hover:not(.disabled) {
+    background: var(--color-windows-dark);
+}
+
+.download-btn.macos {
+    background: var(--color-macos);
+}
+
+.download-btn.macos:hover:not(.disabled) {
+    background: var(--color-macos-dark);
+}
+
+.platform-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.btn-text {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.btn-label {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.btn-platform {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.download-note {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    line-height: 1.8;
+}
+
+/* Screenshot */
+.screenshot {
+    text-align: center;
+}
+
+.app-screenshot {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Features */
+.features ul {
+    list-style: none;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.features li {
+    padding: 12px 0;
+    padding-left: 32px;
+    position: relative;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.features li:last-child {
+    border-bottom: none;
+}
+
+.features li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--color-primary);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    color: var(--color-text-light);
+}
+
+footer a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+.copyright {
+    font-size: 0.85rem;
+    margin-top: 8px;
+    opacity: 0.8;
+}
+
+/* Error state */
+.error-message {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.error-message a {
+    color: var(--color-primary);
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .container {
+        padding: 24px 16px;
+        padding-top: 60px;
+    }
+    
+    .language-switcher {
+        top: 12px;
+        right: 12px;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    main {
+        padding: 24px;
+    }
+    
+    .downloads {
+        padding: 24px 16px;
+        margin-left: -12px;
+        margin-right: -12px;
+    }
+    
+    .app-icon {
+        width: 80px;
+        height: 80px;
+    }
+}

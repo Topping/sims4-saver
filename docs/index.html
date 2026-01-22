@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="pageTitle">The Sims 4 Save Helper - Download</title>
+    <meta name="description" content="Never lose your Sims 4 progress again! A simple utility that reminds you to save your game at regular intervals.">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="language-switcher">
+            <button type="button" class="lang-btn" data-lang="en" aria-label="English">EN</button>
+            <button type="button" class="lang-btn" data-lang="da" aria-label="Dansk">DA</button>
+        </div>
+
+        <header>
+            <img src="icon.png" alt="Sims 4 Save Helper Icon" class="app-icon">
+            <h1>The Sims 4 Save Helper</h1>
+            <p class="tagline" data-i18n="tagline">Never lose your progress again</p>
+        </header>
+
+        <main>
+            <section class="description">
+                <p data-i18n="description">
+                    A simple utility that automatically reminds you to save your game at regular intervals.
+                    Since The Sims 4 doesn't have auto-save, this helper presses a key (like Escape) 
+                    periodically to open the save menu and remind you to save.
+                </p>
+            </section>
+
+            <section class="downloads">
+                <h2 data-i18n="downloadTitle">Download</h2>
+                <p class="version-info" id="version-info">
+                    <span class="loading" data-i18n="checkingVersion">Checking for latest version...</span>
+                </p>
+                
+                <div class="download-buttons">
+                    <a href="#" id="download-windows" class="download-btn windows disabled" aria-label="Download for Windows">
+                        <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+                        </svg>
+                        <div class="btn-text">
+                            <span class="btn-label" data-i18n="downloadFor">Download for</span>
+                            <span class="btn-platform">Windows</span>
+                        </div>
+                    </a>
+                    
+                    <a href="#" id="download-macos" class="download-btn macos disabled" aria-label="Download for macOS">
+                        <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                        </svg>
+                        <div class="btn-text">
+                            <span class="btn-label" data-i18n="downloadFor">Download for</span>
+                            <span class="btn-platform">macOS</span>
+                        </div>
+                    </a>
+                </div>
+
+                <p class="download-note" data-i18n-html="downloadNote">
+                    <strong>Windows:</strong> Download and run the .exe file directly.<br>
+                    <strong>macOS:</strong> Unzip and move the app to your Applications folder.
+                </p>
+            </section>
+
+            <section class="screenshot">
+                <h2 data-i18n="screenshotTitle">Simple and Easy to Use</h2>
+                <img src="app.jpg" alt="Screenshot of The Sims 4 Save Helper application" class="app-screenshot">
+            </section>
+
+            <section class="features">
+                <h2 data-i18n="featuresTitle">Features</h2>
+                <ul>
+                    <li data-i18n-html="feature1"><strong>Auto-detects The Sims 4</strong> - Only runs when the game is active</li>
+                    <li data-i18n-html="feature2"><strong>Configurable intervals</strong> - From 1 second to 30 minutes</li>
+                    <li data-i18n-html="feature3"><strong>Multiple key options</strong> - Escape, F5, F9, Ctrl+S, and more</li>
+                    <li data-i18n-html="feature4"><strong>Test mode</strong> - Verify it works without the game running</li>
+                    <li data-i18n-html="feature5"><strong>Remembers settings</strong> - Your preferences are saved automatically</li>
+                </ul>
+            </section>
+        </main>
+
+        <footer>
+            <p>
+                <a href="https://github.com/Topping/sims4-saver" target="_blank" rel="noopener" data-i18n="viewOnGithub">View on GitHub</a>
+                &bull;
+                <a href="https://github.com/Topping/sims4-saver/releases" target="_blank" rel="noopener" data-i18n="allReleases">All Releases</a>
+            </p>
+            <p class="copyright" data-i18n="copyright">Open source software. Free to use.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
