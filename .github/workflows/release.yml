@@ -1,106 +1,64 @@
 name: Build and Release
 
-on: 
+on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 permissions:
-  contents: write # Required to create a release
+  contents: write
 
 jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
-
-    - name: Install uv
-      run: pip install uv
-
-    - name: Install dependencies
-      run: uv sync
-
-    - name: Run Windows Build Script
-      run: .\build.bat
-
-    - name: Upload Windows Executable
-      uses: actions/upload-artifact@v4
-      with:
-        name: sims-saver-windows
-        path: dist/Sims4-Save-Helper.exe
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install uv
+      - run: make build
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sims-saver-windows
+          path: dist/Sims4-Save-Helper.exe
 
   build-macos:
     runs-on: macos-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
-
-    - name: Install uv
-      run: pip install uv
-
-    - name: Install dependencies
-      run: uv sync
-
-    - name: Run macOS Build Script
-      run: chmod +x build.sh && ./build.sh
-
-    - name: Prepare macOS Artifact
-      run: |
-        mkdir -p artifact_staging
-        mv dist/Sims4-Save-Helper.app artifact_staging/
-
-    - name: Upload macOS Application Bundle
-      uses: actions/upload-artifact@v4
-      with:
-        name: sims-saver-macos
-        path: artifact_staging/
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install uv
+      - run: make build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sims-saver-macos
+          path: dist/Sims4-Save-Helper.app
 
   release:
     needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0 # Required for semantic-version to work correctly
-
-    - name: Get semantic version
-      id: semver
-      uses: paulhatch/semantic-version@v5.4.0
-      with:
-        tag_prefix: "v"
-        major_pattern: "(MAJOR)"
-        minor_pattern: "(MINOR)"
-        version_format: "${major}.${minor}.${patch}"
-
-    - name: Download all build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
-
-    - name: Archive macOS Application Bundle
-      run: cd artifacts/sims-saver-macos && zip -r ../Sims4-Save-Helper-MacOS.zip Sims4-Save-Helper.app
-
-    - name: Create GitHub Release
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        VERSION="${{ steps.semver.outputs.version }}"
-        TAG="v$VERSION"
-        echo "Creating release $TAG"
-        gh release create $TAG \
-          artifacts/sims-saver-windows/Sims4-Save-Helper.exe \
-          artifacts/Sims4-Save-Helper-MacOS.zip \
-          --title "The Sims 4 Save Helper v$VERSION" \
-          --notes "Release v$VERSION"
+      - uses: actions/checkout@v4
+      - name: Generate timestamp version
+        id: version
+        run: echo "version=$(date -u +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Archive macOS app
+        run: |
+          cd artifacts/sims-saver-macos
+          zip -r ../Sims4-Save-Helper-macOS.zip Sims4-Save-Helper.app
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          gh release create "v$VERSION" \
+            artifacts/sims-saver-windows/Sims4-Save-Helper.exe \
+            artifacts/Sims4-Save-Helper-macOS.zip \
+            --title "Sims4 Save Helper - Build $VERSION" \
+            --notes "Automated build $VERSION"

@@ -18,5 +18,10 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["sims_saver"]
 
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.18.0",
+]
+
 [project.scripts]
 sims-saver = "sims_saver.main:main"

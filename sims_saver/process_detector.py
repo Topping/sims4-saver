@@ -50,6 +50,29 @@ class ProcessDetector:
         detected_process = self._find_sims4_process()
         return detected_process is not None
 
+    def is_process_running(self, process_name: str) -> bool:
+        """
+        Check if a specific process is running.
+        
+        Args:
+            process_name: Name of the process to check for.
+            
+        Returns:
+            True if the process is running, False otherwise.
+        """
+        try:
+            process_name_lower = process_name.lower()
+            for proc in psutil.process_iter(["name"]):
+                try:
+                    name = proc.info.get("name")
+                    if name and name.lower() == process_name_lower:
+                        return True
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+        except Exception as e:
+            print(f"Error checking process: {e}")
+        return False
+
     def _find_sims4_process(self) -> Optional[str]:
         """
         Find The Sims 4 process using fuzzy matching.

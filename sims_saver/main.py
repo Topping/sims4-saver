@@ -15,6 +15,7 @@ from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 
 from sims_saver.app_controller import AppController
+from sims_saver.localization import Translator
 from sims_saver.settings_manager import SettingsManager
 
 
@@ -58,8 +59,8 @@ def main():
     QCoreApplication.setOrganizationDomain("github.com/Topping")
     QCoreApplication.setApplicationName("Sims4SaveHelper")
     
-    # Set Qt Quick Controls style to Basic for cross-platform consistency
-    os.environ["QT_QUICK_CONTROLS_STYLE"] = "Basic"
+    # Set Qt Quick Controls style to Material for modern appearance
+    os.environ["QT_QUICK_CONTROLS_STYLE"] = "Material"
 
     # Create the application
     app = QGuiApplication(sys.argv)
@@ -75,11 +76,22 @@ def main():
 
     # Create singleton instances
     settings_manager = SettingsManager()
+    translator = Translator()
     app_controller = AppController(settings_manager)
+
+    # Connect translator to settings manager for translated options
+    settings_manager.set_translator(translator)
+
+    # Sync translator language on startup and when settings change
+    translator.set_language(settings_manager.languageCode)
+    settings_manager.languageIndexChanged.connect(
+        lambda: translator.set_language(settings_manager.languageCode)
+    )
 
     # Set context properties for QML access
     engine.rootContext().setContextProperty("AppController", app_controller)
     engine.rootContext().setContextProperty("SettingsManager", settings_manager)
+    engine.rootContext().setContextProperty("Translator", translator)
 
     # Load the main QML file
     qml_path = get_qml_path()

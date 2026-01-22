@@ -47,6 +47,27 @@ class Translator(QObject):
         "key_label": "Key: {key}",
         "waiting_for_sims": "Waiting for The Sims 4 to start...",
         "info_text": "This app will press your selected key when The Sims 4 is running to remind you to save.",
+        # Additional UI strings
+        "select_process": "Select Process",
+        "search_processes": "Search processes...",
+        "game_detected": "Game detected",
+        "no_game_detected": "No game detected",
+        "clear_selection": "Clear selection",
+        "launch_sims_help": "Launch The Sims 4 and it will be detected automatically",
+        "select_process_manually": "Select a process manually",
+        # Interval options
+        "interval_1_min": "1 minute",
+        "interval_2_min": "2 minutes",
+        "interval_5_min": "5 minutes",
+        "interval_10_min": "10 minutes",
+        "interval_15_min": "15 minutes",
+        "interval_30_min": "30 minutes",
+        # Key descriptions
+        "key_desc_escape": "Opens the game menu for manual saving",
+        "key_desc_f5": "Common quicksave key in many games",
+        "key_desc_f9": "Alternative quicksave key",
+        "key_desc_ctrl_s": "Standard save shortcut",
+        "key_desc_ctrl_shift_s": "Custom save combination",
     }
 
     # Danish translations
@@ -82,6 +103,27 @@ class Translator(QObject):
         "key_label": "Tast: {key}",
         "waiting_for_sims": "Venter på at The Sims 4 starter...",
         "info_text": "Denne app trykker på din valgte tast, når The Sims 4 kører, for at minde dig om at gemme.",
+        # Additional UI strings
+        "select_process": "Vælg proces",
+        "search_processes": "Søg processer...",
+        "game_detected": "Spil fundet",
+        "no_game_detected": "Intet spil fundet",
+        "clear_selection": "Ryd valg",
+        "launch_sims_help": "Start The Sims 4 og det vil blive registreret automatisk",
+        "select_process_manually": "Vælg en proces manuelt",
+        # Interval options
+        "interval_1_min": "1 minut",
+        "interval_2_min": "2 minutter",
+        "interval_5_min": "5 minutter",
+        "interval_10_min": "10 minutter",
+        "interval_15_min": "15 minutter",
+        "interval_30_min": "30 minutter",
+        # Key descriptions
+        "key_desc_escape": "Åbner spilmenuen for manuel gemning",
+        "key_desc_f5": "Almindelig quicksave-tast i mange spil",
+        "key_desc_f9": "Alternativ quicksave-tast",
+        "key_desc_ctrl_s": "Standard genvej til gemning",
+        "key_desc_ctrl_shift_s": "Tilpasset genvejskombination",
     }
 
     _ALL_TRANSLATIONS = {
@@ -100,6 +142,12 @@ class Translator(QObject):
             self._lang_code = lang_code
             self._translations = self._ALL_TRANSLATIONS[lang_code]
             self.languageChanged.emit()
+
+    # Property for QML to bind to - triggers re-evaluation of translations
+    @Property(str, notify=languageChanged)
+    def langCode(self) -> str:
+        """Current language code - bind to this in QML to trigger updates."""
+        return self._lang_code
 
     @Slot(str, result=str)
     def tr(self, key: str) -> str:

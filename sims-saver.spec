@@ -4,6 +4,9 @@ import platform
 import os
 from pathlib import Path
 
+# Version from environment or default
+VERSION = os.environ.get('VERSION', 'dev')
+
 # Get the PySide6 installation path for plugins
 import PySide6
 pyside6_path = Path(PySide6.__file__).parent
@@ -104,8 +107,8 @@ if platform.system() == "Darwin":
         info_plist={
             'CFBundleName': 'Sims4-Save-Helper',
             'CFBundleDisplayName': 'The Sims 4 Save Helper',
-            'CFBundleVersion': '2.0.0',
-            'CFBundleShortVersionString': '2.0.0',
+            'CFBundleVersion': VERSION,
+            'CFBundleShortVersionString': VERSION,
             'NSHumanReadableCopyright': 'Topping 2025',
             'NSHighResolutionCapable': True,
             'LSMinimumSystemVersion': '10.14.0',

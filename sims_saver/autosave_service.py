@@ -19,6 +19,7 @@ class AutosaveService(QThread):
     Signals:
         statusChanged: Emitted when the service status changes
         processDetectedChanged: Emitted when game detection state changes
+        processNameChanged: Emitted when the detected process name changes
         keyPressed: Emitted when a key is successfully pressed
         keyPressFailed: Emitted when a key press fails
     """
@@ -26,6 +27,7 @@ class AutosaveService(QThread):
     # Signals
     statusChanged = Signal(str)
     processDetectedChanged = Signal(bool)
+    processNameChanged = Signal(str)
     keyPressed = Signal()
     keyPressFailed = Signal()
 
@@ -35,13 +37,15 @@ class AutosaveService(QThread):
         self._keyboard_service = KeyboardService()
         
         # Configuration (updated from main thread)
-        self._interval_seconds = 300  # 5 minutes default
+        self._interval_seconds = 600  # 10 minutes default
         self._key_id = "escape"
         self._test_mode = False
+        self._manual_process = ""  # User-selected process override
         
         # State
         self._running = False
         self._process_detected = False
+        self._detected_process_name = ""
 
     def configure(
         self,
@@ -62,6 +66,10 @@ class AutosaveService(QThread):
         self._key_id = key_id
         self._test_mode = test_mode
 
+    def set_manual_process(self, process_name: str):
+        """Set a manual process name to monitor instead of auto-detection."""
+        self._manual_process = process_name
+
     def stop(self):
         """Request the service to stop."""
         self._running = False
@@ -78,12 +86,24 @@ class AutosaveService(QThread):
         while self._running:
             try:
                 # Check for game process
-                game_running = self._process_detector.is_sims4_running()
+                if self._manual_process:
+                    # Manual process mode - check if specific process is running
+                    game_running = self._process_detector.is_process_running(self._manual_process)
+                    process_name = self._manual_process if game_running else ""
+                else:
+                    # Auto-detection mode
+                    game_running = self._process_detector.is_sims4_running()
+                    process_name = self._process_detector.get_detected_process_name() or ""
                 
                 # Update process detection state
                 if game_running != self._process_detected:
                     self._process_detected = game_running
                     self.processDetectedChanged.emit(game_running)
+                
+                # Update process name if changed
+                if process_name != self._detected_process_name:
+                    self._detected_process_name = process_name
+                    self.processNameChanged.emit(process_name)
 
                 # Determine if we should press the key
                 should_press = self._test_mode or game_running
