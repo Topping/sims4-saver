@@ -125,7 +125,7 @@ exe = EXE(
     icon=exe_icon,
     debug=False,
     bootloader_ignore_signals=False,
-    strip=True,
+    strip=platform.system() != "Windows",
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
