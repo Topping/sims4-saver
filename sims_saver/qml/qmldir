@@ -1,0 +1,4 @@
+module SimsSaver
+Main 1.0 Main.qml
+HomeView 1.0 HomeView.qml
+SettingsView 1.0 SettingsView.qml
