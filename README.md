@@ -9,9 +9,6 @@ Or manually from the [releases page](https://github.com/Topping/sims4-saver/rele
 * **Windows:** Download the `.exe` file and double-click to run
 * **macOS (ARM):** Download the `.zip` file, unzip, and move the app to your Applications folder
 
-
-![App Screenshot](assets/app.png)
-
 ## Features
 
 - **Detects The Sims 4** - Only runs when the game is detected
